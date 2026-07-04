@@ -18,13 +18,17 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-使用 `arrange` 命令需下载 [ncmdump](https://github.com/taurusxin/ncmdump/releases/latest) 并将 ncmdump.exe 放到 `./bin` 目录中
+使用 `arrange` 命令需下载 [libncmdump](https://github.com/taurusxin/ncmdump/releases/latest) 并将 ncmdump.dll 放入 `./bin`
 
-使用 `sync` 命令需下载 [ffmpeg](https://ffmpeg.org/download.html) 并将其添加至环境变量
+使用 `sync` 命令需下载 [ffmpeg](https://ffmpeg.org/download.html) 并将其填入环境变量
 
 ## 配置
 
-将根目录的 `.env.example` 文件重命名为 `.env` ，设置以下配置项：
+```
+copy .env.example .env
+```
+
+编辑 `.env` 以下配置项：
 
 | 配置项       | 说明                               |
 | ------------ | ---------------------------------- |

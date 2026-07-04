@@ -1,19 +1,23 @@
 import json
 import sqlite3
+from pathlib import Path
+from typing import Any
 
 from .config import DB
 
 
-def metadata(path) -> list:
-    playlists = {f.name for f in path.iterdir() if f.is_dir()}
+# 从网易云本地数据库读取曲目元数据和歌单映射
+def metadata(path: Path) -> list[dict[str, Any]]:
+    playlists = {entry.name for entry in path.iterdir() if entry.is_dir()}
 
     with sqlite3.connect(DB) as conn:
-        trackdict = {}
+        trackdict: dict[int, dict[str, Any]] = {}
         for (row,) in conn.execute("SELECT jsonStr FROM dbTrack"):
             track = json.loads(row)
-            trackdict[int(track['id'])] = {
+            trackId = int(track['id'])
+            trackdict[trackId] = {
                 'name': track['name'],
-                'id': int(track['id']),
+                'id': trackId,
                 'position': track['position'],
                 'artists': track['artists'],
                 'album': track['album'],
@@ -21,32 +25,33 @@ def metadata(path) -> list:
                 'mvid': track['mvid'] or 0,
             }
 
-        playdict = {}
+        playdict: dict[int, str] = {}
         for (row,) in conn.execute("SELECT jsonStr FROM persistentModel WHERE jsonStr LIKE '%hostResource%'"):
             for playlist in json.loads(row)['data']['createPlaylist']:
                 if playlist['name'] in playlists:
                     playdict[playlist['id']] = playlist['name']
 
-        metalist = []
+        metalist: list[dict[str, Any]] = []
         for pid, raw in conn.execute("SELECT id, jsonStr FROM playlistTrackIds"):
-            name = playdict.get(pid)
-            if not name:
+            if not (name := playdict.get(pid)):
                 continue
-            metalist.append({
-                'name': name,
-                'tracks': [trackdict[int(item['id'])] for item in json.loads(raw)['trackIds']],
-            })
+            tracks = []
+            for item in json.loads(raw)['trackIds']:
+                if track := trackdict.get(int(item['id'])):
+                    tracks.append(track)
+            metalist.append({'name': name, 'tracks': tracks})
     return metalist
 
 
-def bitrate() -> tuple:
+# 读取离线曲目实际比特率与最高可用比特率
+def bitrate() -> tuple[dict[int, dict[str, Any]], dict[int, int]]:
     with sqlite3.connect(DB) as conn:
-        maxBr = {}
+        maxBr: dict[int, int] = {}
         for (row,) in conn.execute("SELECT jsonStr FROM dbTrack"):
             track = json.loads(row)
             maxBr[int(track['id'])] = track['privilege']['maxDownBr']
 
-        offlineBr = {}
+        offlineBr: dict[int, dict[str, Any]] = {}
         for (row,) in conn.execute("SELECT jsonStr FROM offlineTrack"):
             data = json.loads(row)
             trackId = int(data['trackId'])
