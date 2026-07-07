@@ -44,17 +44,18 @@ def _copy_files(keys: set, suffix: str) -> None:
 # FLAC 转 MP3，继承源文件时间戳和元数据
 def _convert_flac(keys: set, src_flac: dict) -> None:
     for key in keys:
-        dest = SYNC_PATH / key.with_suffix('.mp3')
+        dest = SYNC_PATH / key.with_name(key.name + '.mp3')
         dest.parent.mkdir(parents=True, exist_ok=True)
+        flac_path = PATH / key.with_name(key.name + '.flac')
         print(f'转换 {key}')
         subprocess.run(
-            ['ffmpeg', '-i', str(PATH / key.with_suffix('.flac')), '-ab', '320k', '-y', str(dest)],
+            ['ffmpeg', '-i', str(flac_path), '-ab', '320k', '-y', str(dest)],
             check=True,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-        src_meta, codec = analyze(PATH / key.with_suffix('.flac'))
-        comments = extract(PATH / key.with_suffix('.flac'), codec, src_meta)
+        src_meta, codec = analyze(flac_path)
+        comments = extract(flac_path, codec, src_meta)
         dest_meta, _ = analyze(dest)
         write(dest_meta, 'mp3', comments[0] if comments else '')
         utime(dest, (src_flac[key], src_flac[key]))
