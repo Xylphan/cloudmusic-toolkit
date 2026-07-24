@@ -3,9 +3,9 @@ from pathlib import Path
 from shutil import move, rmtree
 from typing import Any
 
-from .config import ROOT
-from .database import metadata
-from .utils import analyze, decrypt, extract, mark
+from src.config import ROOT
+from src.database import metadata
+from src.utils import analyze, decrypt, extract, mark
 
 
 # 构建查找表
@@ -84,7 +84,7 @@ def _match_file(file: Path, playdict: dict, trackmap: dict, base: Path) -> str |
 
     track, folder = data
     if not comment:
-        mark(file, track, (meta, codec))
+        mark(file, track)
 
     (base / folder).mkdir(exist_ok=True)
     move(file, base / folder / file.name)

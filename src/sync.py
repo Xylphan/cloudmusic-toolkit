@@ -2,8 +2,8 @@ import subprocess
 from os import utime
 from shutil import copy2
 
-from .config import PATH, SYNC_PATH
-from .utils import analyze, extract, write
+from src.config import PATH, SYNC_PATH
+from src.utils import analyze, extract, write
 
 
 # 扫描目录文件时间戳

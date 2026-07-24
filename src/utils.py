@@ -25,8 +25,9 @@ def analyze(path: Path, easy: bool = True) -> tuple[Any, str]:
 def extract(path: Path, codec: str, meta: Any = None) -> list[str]:
     if codec == 'flac':
         handle = meta if meta else flac.FLAC(path)
-        desc = handle.get('description', '')
-        return [desc] if desc else []
+        desc = handle.get('description', [])
+        assert desc
+        return desc
     else:
         handle = meta if meta else mp3.MP3(path)
         if handle.tags is None:
@@ -135,11 +136,11 @@ def fetch(uri: str) -> dict[str, Any] | None:
     if 'event' in uri:
         match = re.search(r'[?&]id=(\d+)', uri)
         assert match
-        id = match.group(1)
+        mid = match.group(1)
         match = re.search(r'[?&]uid=(\d+)', uri)
         assert match
         uid = match.group(1)
-        response = requests.get('https://music.163.com/event', params={'id': id, 'uid': uid}, headers=headers, timeout=3)
+        response = requests.get('https://music.163.com/event', params={'id': mid, 'uid': uid}, headers=headers, timeout=3)
         match = re.search(r'<textarea.+id="event-data".*>([\s\S]+?)</textarea>', response.text)
         assert match
         data = match.group(1)
@@ -158,14 +159,14 @@ def fetch(uri: str) -> dict[str, Any] | None:
     elif 'album' in uri:
         match = re.search(r'[?&]id=(\d+)', uri)
         assert match
-        id = match.group(1)
-        response = requests.get('https://music.163.com/api/album/' + id, headers=headers, timeout=3)
+        mid = match.group(1)
+        response = requests.get('https://music.163.com/api/album/' + mid, headers=headers, timeout=3)
         data = json.loads(response.text)
         return {'album': data['album'], 'artists': data['album']['artists']}
     elif 'song' in uri:
         match = re.search(r'[?&]id=(\d+)', uri)
         assert match
-        id = match.group(1)
-        response = requests.get('https://music.163.com/api/song/detail?ids=[' + id + ']', headers=headers, timeout=3)
+        mid = match.group(1)
+        response = requests.get('https://music.163.com/api/song/detail?ids=[' + mid + ']', headers=headers, timeout=3)
         data = json.loads(response.text)
         return data['songs'][0]

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from .database import bitrate
+from src.database import bitrate
 
 
 # 筛除低音质文件

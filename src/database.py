@@ -3,7 +3,7 @@ import sqlite3
 from pathlib import Path
 from typing import Any
 
-from .config import DB
+from src.config import DB
 
 
 # 从网易云本地数据库读取曲目元数据和歌单映射
